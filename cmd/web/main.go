@@ -18,10 +18,6 @@ func main() {
 	addr := flag.String("addr", ":8080", "HTTP address")
 	flag.Parse()
 
-	mux := http.NewServeMux()
-
-	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./ui/static")})
-
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
@@ -30,17 +26,10 @@ func main() {
 		infoLog:  infoLog,
 	}
 
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet", app.snippet)
-	mux.HandleFunc("/snippet/create", app.createSnippet)
-
-	mux.Handle("/static", http.StripPrefix("/static", fileServer))
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-
 	srv := http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler:  mux,
+		Handler:  app.routes(),
 	}
 
 	infoLog.Printf("Running web server on %s", *addr)
